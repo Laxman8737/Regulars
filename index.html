@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bahi | Shop ledger &amp; bills</title>
+<meta name="author" content="Ram Laxman Shastry Jagarlapudi">
+<meta name="theme-color" content="#e5484d">
+<meta name="description" content="Bahi: your shop ledger and GST bills in one simple app.">
+<script>window.APP={name:"Bahi",tagline:"Shop ledger & GST bills",owner:"Ram Laxman Shastry Jagarlapudi",email:"lakshman15407@gmail.com",version:"1.0",year:"2026"};</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bahi">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* =====================================================
+   Regulars v2 - clean, light, modern.
+   Change the colours below to re-skin the whole app.
+   ===================================================== */
+:root{
+  --bg:#f6f8f7; --card:#ffffff; --ink:#0f1a16; --muted:#68766f; --line:#e5eae7;
+  --accent:#0e9f6e; --accent-ink:#ffffff; --soft:#edf5f1; --danger:#d64545;
+  --radius:16px; --shadow:0 1px 2px rgba(15,26,22,.04),0 8px 24px rgba(15,26,22,.06);
+  --font:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#0b110f; --card:#131b18; --ink:#eaf1ee; --muted:#8c9d96; --line:#233029;
+  --accent:#34d399; --accent-ink:#06281c; --soft:#192420; --danger:#f06b6b;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+[hidden]{display:none!important}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- controls ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:44px;padding:.6rem 1.1rem;
+  border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600;cursor:pointer;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(.95)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--danger)}
+.btn.sm{min-height:36px;padding:.3rem .8rem;font-size:.9rem;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.icon-btn{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;border:0;background:transparent;cursor:pointer;color:var(--ink)}
+.icon-btn:hover{background:var(--soft)}
+svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.9rem}
+.field label{font-size:.85rem;font-weight:600;color:var(--muted)}
+input,textarea,select{width:100%;min-height:46px;padding:.65rem .9rem;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+textarea{min-height:76px;resize:vertical}
+input[type=checkbox]{width:20px;height:20px;min-height:0;padding:0;accent-color:var(--accent)}
+.err{color:var(--danger);font-size:.9rem;min-height:1.2em;margin:.2rem 0 .6rem}
+.muted{color:var(--muted)}
+
+/* ---------- auth ---------- */
+.auth{min-height:100vh;display:grid;place-items:center;padding:1.5rem 1rem}
+.auth-wrap{width:100%;max-width:400px}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:800;font-size:1.15rem}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:.8rem;font-weight:800}
+.auth h1{font-size:clamp(1.8rem,6vw,2.3rem);line-height:1.15;letter-spacing:-.02em;margin:1.6rem 0 .4rem}
+.auth .lead{margin:0 0 1.4rem;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.4rem;box-shadow:var(--shadow)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:12px;padding:4px;margin-bottom:1.1rem}
+.seg button{border:0;background:transparent;padding:.55rem;border-radius:9px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.or{display:flex;align-items:center;gap:.8rem;color:var(--muted);font-size:.85rem;margin:1rem 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.link{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:0}
+.setup{background:var(--soft);border:1px dashed var(--accent);border-radius:14px;padding:1rem;margin-bottom:1rem;font-size:.9rem}
+.setup textarea{margin-top:.6rem;font-size:.8rem}
+.warn{background:#fff3cd;color:#5c4400;padding:.8rem 1rem;font-size:.9rem;text-align:center}
+.credit{margin-top:1.4rem;text-align:center;font-size:.85rem;color:var(--muted)}
+.credit a{color:var(--muted)}
+
+/* ---------- app ---------- */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:.2rem;padding:.6rem clamp(.8rem,3vw,1.5rem);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .brand{margin-right:auto}
+.sync{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted);margin-right:.4rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.dot.off{background:var(--danger)}
+main{max-width:860px;margin:0 auto;padding:1.4rem clamp(.8rem,3vw,1.5rem) 7rem}
+.hero{padding:.6rem 0 1.4rem}
+.hero .label{margin:0;color:var(--muted);font-weight:600;font-size:.9rem}
+.hero h1{margin:.1rem 0 .2rem;font-size:clamp(2.4rem,9vw,3.6rem);letter-spacing:-.03em;line-height:1.05}
+.hero .sub{margin:0;color:var(--muted)}
+.hero .sub b{color:var(--ink)}
+.bar{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+.search{position:relative;flex:1 1 220px}
+.search svg{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);width:18px;height:18px}
+.search input{padding-left:2.5rem}
+.bar select{width:auto;flex:0 0 auto}
+.list-head{display:flex;align-items:center;justify-content:space-between;padding:.3rem .2rem .6rem;font-size:.85rem;color:var(--muted)}
+.list-head label{display:flex;align-items:center;gap:.5rem;cursor:pointer}
+.rows{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.row{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--soft)}
+.row-main{flex:1;min-width:0;display:flex;align-items:center;gap:.8rem;background:none;border:0;text-align:left;cursor:pointer;padding:0}
+.avatar{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--soft);color:var(--accent);font-weight:800;font-size:.9rem}
+.who{min-width:0}
+.who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{display:block;font-size:.85rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.amt{text-align:right;flex:none}
+.amt b{display:block;font-weight:700}
+.amt span{font-size:.78rem;color:var(--muted)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty h3{margin:0 0 .3rem;color:var(--ink)}
+.more{display:flex;justify-content:center;margin-top:1rem}
+.foot{text-align:center;color:var(--muted);font-size:.82rem;margin-top:2rem}
+.foot a{color:var(--muted)}
+.selbar{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;
+  display:flex;align-items:center;gap:.5rem;background:var(--ink);color:var(--bg);padding:.5rem .6rem .5rem 1.1rem;border-radius:999px;box-shadow:var(--shadow);max-width:94vw}
+.selbar .btn{min-height:38px;border-radius:999px}
+
+/* ---------- dialogs (bottom sheets on phones) ---------- */
+dialog{border:1px solid var(--line);border-radius:22px;padding:0;background:var(--card);color:var(--ink);width:min(520px,94vw);max-height:92vh;box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(6,12,10,.5)}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:1}
+.dh h2{margin:0;font-size:1.05rem}
+.db{padding:1.2rem}
+.acts{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.who-big{display:flex;gap:.9rem;align-items:center;margin-bottom:.8rem}
+.who-big .avatar{width:54px;height:54px;font-size:1.1rem}
+.who-big h3{margin:0;font-size:1.2rem}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.total{display:flex;justify-content:space-between;align-items:baseline;background:var(--soft);border-radius:14px;padding:.9rem 1rem;margin:.8rem 0 1rem}
+.total b{font-size:1.6rem;letter-spacing:-.02em}
+.plist{list-style:none;margin:.5rem 0 1rem;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.plist li{display:flex;align-items:center;gap:.6rem;padding:.6rem .9rem;border-bottom:1px solid var(--line)}
+.plist li:last-child{border-bottom:0}
+.plist .pm{flex:1;min-width:0}
+.plist .pm b{display:block;overflow-wrap:anywhere}
+.plist .pm span{font-size:.8rem;color:var(--muted)}
+.pform{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:.5rem;align-items:end}
+.calc-display{font-size:1.8rem;text-align:right;font-weight:700;min-height:64px;margin-bottom:.6rem}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;max-width:340px;margin:0 auto}
+.keys button{min-height:54px;border-radius:14px;border:1px solid var(--line);background:var(--soft);font-size:1.15rem;font-weight:700;cursor:pointer}
+.keys .op{color:var(--accent)}
+.keys .eq{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:5rem;transform:translateX(-50%) translateY(10px);opacity:0;background:var(--ink);color:var(--bg);
+  padding:.65rem 1.1rem;border-radius:999px;z-index:100;transition:.2s;pointer-events:none;max-width:90vw;text-align:center;font-size:.92rem}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:640px){
+  dialog{margin:auto 0 0;width:100%;max-width:100%;border-radius:22px 22px 0 0;max-height:94vh}
+  .pform{grid-template-columns:1fr 1fr}.pform .btn{grid-column:1/-1}
+  .two{grid-template-columns:1fr}
+  .sync span:last-child{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- computer layout (wide screens) ---------- */
+.cols-head,.c-contact,.c-addr{display:none}
+@media (min-width:900px){
+  main{max-width:1100px;padding-top:2rem}
+  .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem}
+  .bar .search{flex:1 1 360px}
+  .row{display:grid;grid-template-columns:24px minmax(180px,1.5fr) minmax(120px,1fr) minmax(160px,1.6fr) 140px;gap:1rem;padding:.7rem 1.1rem}
+  .cols-head{display:grid;grid-template-columns:24px minmax(180px,1.5fr) minmax(120px,1fr) minmax(160px,1.6fr) 140px;gap:1rem;
+    padding:.6rem 1.1rem;font-size:.78rem;font-weight:700;color:var(--muted);background:var(--soft);border:1px solid var(--line);border-bottom:0;border-radius:var(--radius) var(--radius) 0 0}
+  .cols-head span:last-child{text-align:right}
+  .cols-head + .rows{border-radius:0 0 var(--radius) var(--radius)}
+  .c-contact,.c-addr{display:block;font-size:.92rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .who span{display:none}
+  .row-main{cursor:pointer}
+  /* customer details open as a side panel */
+  #detailDlg{margin:0 0 0 auto;height:100vh;max-height:100vh;width:480px;border-radius:0;border-width:0 0 0 1px}
+  #formDlg,#calcDlg{width:480px}
+  .selbar{left:calc(50% );}
+}
+kbd{font:inherit;font-size:.75rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 .35rem;background:var(--card);color:var(--muted)}
+.hint-keys{display:none}
+@media (min-width:900px) and (pointer:fine){.hint-keys{display:block}}
+
+/* Responsive refinements: preserve existing features and visual design */
+html { min-width: 320px; scroll-behavior: smooth; }
+body { overflow-x: hidden; }
+img, svg, video, canvas { max-width: 100%; }
+button, .btn, .icon-btn, input, textarea, select { touch-action: manipulation; }
+button, .btn { -webkit-tap-highlight-color: transparent; }
+input, textarea, select { font-size: 16px; } /* prevent iOS zoom on focus */
+dialog { overflow: auto; overscroll-behavior: contain; }
+.db { padding-bottom: max(1.2rem, env(safe-area-inset-bottom)); }
+.top { padding-left: max(.8rem, env(safe-area-inset-left)); padding-right: max(.8rem, env(safe-area-inset-right)); }
+main { padding-left: max(.8rem, env(safe-area-inset-left)); padding-right: max(.8rem, env(safe-area-inset-right)); }
+.rows { min-width: 0; }
+.row > * { min-width: 0; }
+.row-main { min-width: 0; }
+.who b, .who span { overflow-wrap: anywhere; }
+.acts > * { flex: 0 0 auto; }
+#formDlg .db, #calcDlg .db, #detailDlg .db { overflow-wrap: anywhere; }
+#detailDlg .plist { max-width: 100%; }
+#detailDlg .pform input { min-width: 0; }
+#search { min-width: 0; }
+@media (max-width: 640px) {
+  .top { gap: .1rem; }
+  .top .brand { font-size: 1.02rem; gap: .4rem; }
+  .top .mark { width: 31px; height: 31px; }
+  .top .icon-btn { width: 40px; height: 40px; flex: 0 0 40px; }
+  main { padding-top: .9rem; }
+  .hero { padding-top: .4rem; padding-bottom: 1rem; }
+  .hero h1 { font-size: clamp(2rem, 11vw, 3rem); overflow-wrap: anywhere; }
+  .bar { gap: .5rem; }
+  .bar .search { flex: 1 1 100%; }
+  .bar select { flex: 1 1 auto; min-width: 0; width: auto; }
+  #addBtn { flex: 1 1 auto; white-space: nowrap; }
+  .list-head { gap: .5rem; }
+  .row { gap: .55rem; padding: .8rem .7rem; }
+  .row .pick { flex: 0 0 20px; }
+  .row-main { gap: .55rem; }
+  .avatar { width: 38px; height: 38px; }
+  .amt { max-width: 34%; overflow-wrap: anywhere; }
+  .amt b { font-size: .94rem; }
+  .amt span { display: block; max-width: 100%; overflow-wrap: anywhere; }
+  .selbar { gap: .3rem; padding: .4rem .45rem .4rem .7rem; bottom: calc(.5rem + env(safe-area-inset-bottom)); }
+  .selbar .btn { padding: .35rem .55rem; font-size: .8rem; }
+  dialog { width: 100%; max-width: 100%; }
+  .dh { padding: .8rem 1rem; }
+  .db { padding: 1rem; }
+  .pform { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .pform .field:first-child { grid-column: 1 / -1; }
+  .pform .btn { grid-column: 1 / -1; width: 100%; }
+  .keys { gap: .4rem; }
+  .keys button { min-height: 50px; }
+  .calc-display { font-size: 1.6rem; }
+  .foot { overflow-wrap: anywhere; }
+}
+@media (min-width: 641px) and (max-width: 899px) {
+  main { max-width: 760px; }
+  .bar .search { flex: 1 1 100%; }
+  .bar select { flex: 1 1 auto; }
+}
+@media (min-width: 900px) {
+  body { min-height: 100dvh; }
+  #detailDlg { overscroll-behavior: contain; }
+}
+@media (max-height: 560px) and (max-width: 640px) {
+  dialog { max-height: 96dvh; }
+  .auth { min-height: 100dvh; align-items: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ---------- desktop login layout: welcome left, form right ---------- */
+@media (min-width: 900px) {
+  #authView {
+    min-height: 100vh;
+    padding: 3rem clamp(2rem, 6vw, 6rem);
+  }
+  #authView .auth-wrap {
+    width: min(100%, 1080px);
+    max-width: 1080px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+    column-gap: clamp(3rem, 7vw, 7rem);
+    align-items: center;
+  }
+  #authView .brand {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+    font-size: 1.15rem;
+  }
+  #authView h1 {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    max-width: 560px;
+    margin: 1.5rem 0 .7rem;
+    font-size: clamp(2.6rem, 4vw, 4rem);
+    line-height: 1.08;
+  }
+  #authView .lead {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: 470px;
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  #authView .card {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    padding: 1.6rem;
+    width: 100%;
+  }
+  #authView .credit {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    margin-top: 2.2rem;
+    text-align: left;
+  }
+}
+
+
+/* ===== Meniscus dock skin (visual only) ===== */
+:root{
+  --bg:#fafaf9; --card:#ffffff; --ink:#111214; --muted:#6b6f76; --line:#e8e8e6;
+  --accent:#e5484d; --accent-ink:#fff; --soft:#fdeeee; --danger:#d92d20;
+  --shadow:0 1px 2px rgba(17,18,20,.04),0 8px 24px rgba(17,18,20,.06);
+}
+:root[data-theme="dark"]{
+  --bg:#0e0e10; --card:#17171a; --ink:#f4f4f5; --muted:#9a9ca3; --line:#2a2a2e;
+  --accent:#ff5a5f; --accent-ink:#fff; --soft:#2a1a1b; --danger:#ff6b6b;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+}
+body{background:var(--bg)}
+#billDlg{width:560px}.bi{display:grid;grid-template-columns:1fr 54px 76px 28px;gap:.35rem;margin-bottom:.4rem}.bi input{min-width:0;padding:.55rem}
+.bi button{background:none;border:0;color:var(--danger);font-size:1.1rem}.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.bprev{background:#e9e4df;border-radius:14px;padding:12px;margin:1rem 0;overflow:auto}
+.rc{width:300px;max-width:100%;margin:0 auto;background:#fff;color:#000;font:12px/1.4 "Courier New",monospace;padding:12px}
+.rc hr{border:0;border-top:1px dashed #000;margin:6px 0}.rc table{width:100%;border-collapse:collapse}.rc td,.rc th{padding:1px 0;vertical-align:top}
+.rc .r{text-align:right}.rc .c{text-align:center}.rc h3{margin:0;font-size:16px;text-align:center}.rc .big{font-size:15px;font-weight:700}
+.bst{border-radius:12px;padding:.7rem .8rem;margin:.8rem 0 0;font-size:.92rem;display:none;border:1px solid var(--line);background:var(--soft)}
+.bst.ok{border-color:#2e9d5b;color:#2e9d5b}.bst.err{border-color:var(--danger);color:var(--danger)}.bst.show{display:block}.bst .acts{margin-top:.5rem}
+.offline{position:fixed;top:0;left:0;right:0;z-index:90;background:#333;color:#fff;text-align:center;font-size:.85rem;padding:calc(.35rem + env(safe-area-inset-top)) .5rem .35rem;display:none}.offline.show{display:block}
+.logo{width:34px;height:34px;display:block;flex:none}
+.logo rect,.logo path:not([stroke]){stroke:none}
+#authView .logo-lg{width:72px;height:72px;margin:0 auto 1rem}
+#authView{background:var(--bg)}#authView .auth-wrap{max-width:380px}
+#authView h1{font-size:1.75rem;text-align:center;margin:.2rem 0 .3rem;letter-spacing:-.02em}
+#authView .lead{text-align:center;margin:0 0 1.4rem}
+#authView .card{border:1px solid var(--line);box-shadow:none;border-radius:20px;background:var(--card)}
+.legal-note{font-size:.78rem;color:var(--muted);text-align:center;margin:1rem 0 0}.legal-note .link{font-size:inherit;color:var(--ink);text-decoration:underline}
+.owner{font-size:.72rem;color:var(--muted);text-align:center;margin:1.2rem 0 0}
+.sent{text-align:center;padding:.3rem 0}.sent b{display:block;font-size:1.05rem;margin-bottom:.3rem}
+.field input.bad{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(217,45,32,.15)}.ferr{display:block;color:var(--danger);font-size:.78rem;margin-top:.25rem}
+.legal h4{margin:1.1rem 0 .3rem;font-size:.95rem}.legal p,.legal li{font-size:.9rem;line-height:1.55;color:var(--muted);margin:.2rem 0}.legal ul{padding-left:1.1rem}
+#privacyDlg,#termsDlg,#supportDlg{max-width:640px}
+.bi2{border:1px solid var(--line);border-radius:12px;padding:.5rem;margin-bottom:.5rem}.bi2-top{display:flex;gap:.4rem;margin-bottom:.4rem}.bi2-top input{flex:1;min-width:0}
+.bi2-top button{background:none;border:0;color:var(--danger);font-size:1.1rem}.bi2-grid{display:grid;grid-template-columns:1.2fr .8fr 1.1fr .9fr;gap:.35rem}.bi2 input,.bi2 select{min-width:0;padding:.5rem;font-size:.9rem}
+.rc .s{font-size:11px;color:#333}
+.pr-av{width:64px;height:64px;font-size:1.3rem}
+#profileDlg{width:100%;max-width:100%;height:100%;max-height:100%;margin:0;border:0;border-radius:0;padding:0}
+#profileDlg .db{overflow:auto;height:calc(100% - 64px);padding:1rem 1rem 3rem}
+.ps{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1rem;margin:0 auto .9rem;max-width:560px}
+.ps h4{margin:0 0 .7rem;font-size:1rem}.ps .field{margin-bottom:.7rem}.ps select{width:100%}
+.ps .hint{font-size:.82rem;color:var(--muted);margin:.2rem 0 .6rem}
+.selbar{bottom:calc(4.8rem + env(safe-area-inset-bottom))}
+.toast{bottom:5.6rem}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tab{background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:58px;color:var(--ink);cursor:pointer;font:inherit;padding:0}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab .tab__label{font-size:.7rem;font-weight:600}
+.tab[aria-selected=true]{color:#e53935}
+.tab[aria-selected=true] svg{stroke-width:2.4}
+@media(min-width:900px){.dock{max-width:520px;left:50%;right:auto;transform:translateX(-50%);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0}}
+</style>
+</head>
+<body>
+
+<div id="protoWarn" class="warn" hidden><b>Open this page from its https:// link.</b> Opening the file directly from your phone or computer files can't run the app.</div>
+<script>if(!/^https?:$/.test(location.protocol))document.getElementById("protoWarn").hidden=false;</script>
+
+<!-- ================= LOGIN ================= -->
+<section id="authView" class="auth">
+  <div class="auth-wrap">
+    <svg class="logo logo-lg" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#e5484d"/><path d="M12 19c8-3 14-1 20 3v25c-6-4-12-6-20-3z" fill="#fff"/><path d="M52 19c-8-3-14-1-20 3v25c6-4 12-6 20-3z" fill="#fff" opacity=".86"/><path d="M17 27c4-1 8 0 11 1.6M17 33c4-1 8 0 11 1.6M36 28.6c3-1.6 7-2.6 11-1.6" stroke="#e5484d" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+    <h1 data-app="name">Bahi</h1>
+    <p class="lead" data-app="tagline"></p>
+    <div class="card">
+      <div id="setup" class="setup" hidden>
+        <b>One-time setup.</b> Paste your Firebase web-app config (Firebase console &rarr; Project settings &rarr; Your apps &rarr; Config), then save.
+        <textarea id="cfgInput" rows="6" placeholder='const firebaseConfig = {&#10;  apiKey: "...",&#10;  projectId: "...",&#10;  ...&#10;};'></textarea>
+        <button type="button" class="btn primary sm" id="cfgSave" style="margin-top:.6rem">Save and continue</button>
+        <p class="err" id="cfgErr" style="margin:.4rem 0 0"></p>
+      </div>
+      <form id="authForm" novalidate>
+        <div id="authAsk">
+          <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@shop.com"></div>
+          <p class="err" id="authErr" role="alert"></p>
+          <button class="btn primary" id="authBtn" style="width:100%">Email me a one-time link</button>
+          <p class="hint" style="text-align:center;margin:.7rem 0 0;font-size:.82rem;color:var(--muted)">No password. We email a secure link that works once. New here? The same button creates your account.</p>
+        </div>
+        <div id="authSent" class="sent" hidden>
+          <b>Check your email</b><span id="sentTo" class="muted"></span>
+          <p class="hint" style="font-size:.85rem;color:var(--muted)">Tap the link in the email to continue. Look in spam if you can't see it.</p>
+          <div class="acts" style="justify-content:center"><button type="button" class="btn sm" id="resend">Resend link</button><button type="button" class="btn sm" id="otherMail">Use another email</button></div>
+        </div>
+      </form>
+      <div class="or">or</div>
+      <button class="btn" id="googleBtn" style="width:100%">
+        <svg viewBox="0 0 48 48" style="stroke:none;fill:none" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.4-4.7 7l7.3 5.7c4.3-4 6.8-9.9 6.8-17.2z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.3-5.7c-2 1.4-4.7 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+    <p class="legal-note">By continuing you agree to our <button class="link" type="button" data-legal="terms">Terms</button> and <button class="link" type="button" data-legal="privacy">Privacy Policy</button>.</p>
+    <p class="owner">&copy; <span data-app="year"></span> <span data-app="owner"></span></p>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<section id="appView" hidden>
+  <header class="top">
+    <svg class="logo " viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#e5484d"/><path d="M12 19c8-3 14-1 20 3v25c-6-4-12-6-20-3z" fill="#fff"/><path d="M52 19c-8-3-14-1-20 3v25c6-4 12-6 20-3z" fill="#fff" opacity=".86"/><path d="M17 27c4-1 8 0 11 1.6M17 33c4-1 8 0 11 1.6M36 28.6c3-1.6 7-2.6 11-1.6" stroke="#e5484d" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg> <span data-app="name">Bahi</span>
+    <span class="sync"><i class="dot" id="dot"></i><span id="syncTxt">Live</span></span>
+    <button class="icon-btn" id="calcBtn" aria-label="Calculator" title="Calculator"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg></button>
+    <button class="icon-btn" id="themeBtn" aria-label="Light or dark" title="Light / dark"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+    <button class="icon-btn" id="logoutBtn" aria-label="Log out" title="Log out"><svg viewBox="0 0 24 24"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M16 8l4 4-4 4M20 12H9"/></svg></button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="label">Total sales</p>
+      <h1 id="sTotal">&#8377;0</h1>
+      <p class="sub"><b id="sMonth">&#8377;0</b> this month &middot; <b id="sCount">0</b> customers</p>
+    </section>
+
+    <div class="bar">
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search by name or phone" aria-label="Search customers"></div>
+      <select id="sort" aria-label="Sort">
+        <option value="name">Name A-Z</option><option value="spent">Top spenders</option><option value="recent">Newest first</option>
+      </select>
+      <button class="btn primary" id="addBtn">+ Add customer</button>
+    </div>
+
+    <div class="list-head">
+      <label><input type="checkbox" id="checkAll"> Select all shown</label>
+      <span id="shown"></span>
+    </div>
+    <div class="cols-head" aria-hidden="true"><span></span><span>Customer</span><span>Contact</span><span>Address</span><span>Total</span></div>
+    <ul class="rows" id="rows"></ul>
+    <div class="empty" id="empty" hidden><h3 id="emptyH">No customers yet</h3><p id="emptyP">Tap "Add customer" to save your first regular.</p></div>
+    <div class="more"><button class="btn" id="moreBtn" hidden>Show more</button></div>
+
+    <p class="foot hint-keys"><kbd>/</kbd> search &nbsp; <kbd>N</kbd> new customer &nbsp; <kbd>C</kbd> calculator</p>
+    <p class="foot"><span id="who"></span><br><button class="link" id="expAll" style="color:var(--muted);font-weight:500">Download all customers (Excel)</button></p>
+    <p class="owner">&copy; <span data-app="year"></span> <span data-app="owner"></span> &middot; <span data-app="name"></span> v<span data-app="version"></span></p>
+  </main>
+
+  <nav class="dock" id="dock" aria-label="Main">
+    
+      <button class="tab" data-act="home" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 10v10h5v-6h4v6h5V10"/></svg><span class="tab__label">Home</span></button>
+      <button class="tab" data-act="find" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="tab__label">Search</span></button>
+      <button class="tab" data-act="add" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="tab__label">Add</span></button>
+      <button class="tab" data-act="bill" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg><span class="tab__label">Bill</span></button>
+      <button class="tab" data-act="profile" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1-4 4-6 8-6s7 2 8 6"/></svg><span class="tab__label">Profile</span></button>
+  </nav>
+
+  <div class="selbar" id="selbar" hidden>
+    <span id="selTxt">0 selected</span>
+    <button class="btn primary sm" id="expSel">Download Excel</button>
+    <button class="btn ghost sm" id="clearSel" style="color:inherit">Clear</button>
+  </div>
+</section>
+
+<!-- customer form -->
+<dialog id="formDlg">
+  <div class="dh"><h2 id="formTitle">Add customer</h2><button class="icon-btn" autofocus data-close aria-label="Close">&#10005;</button></div>
+  <form class="db" id="form">
+    <div class="field"><label for="fName">Name</label><input id="fName" maxlength="80"></div>
+    <div class="field"><label for="fPhone">Contact number (10 digits)</label><input id="fPhone" type="tel" inputmode="numeric" maxlength="14" placeholder="98765 43210"></div>
+    <div class="field"><label for="fAddr">Address</label><textarea id="fAddr" maxlength="300"></textarea></div>
+    <div class="field"><label for="fNotes">Notes</label><textarea id="fNotes" maxlength="500" placeholder="e.g. prefers evening delivery"></textarea></div>
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary">Save customer</button></div>
+  </form>
+</dialog>
+
+<!-- customer detail -->
+<dialog id="detailDlg">
+  <div class="dh"><h2>Customer</h2><button class="icon-btn" data-close aria-label="Close">&#10005;</button></div>
+  <div class="db">
+    <div class="who-big"><div class="avatar" id="dAv"></div><div><h3 id="dName"></h3><div class="muted" id="dSub"></div></div></div>
+    <div class="chips"><a class="btn sm" id="dCall" href="#">Call</a><a class="btn sm" id="dWa" href="#" target="_blank" rel="noopener">WhatsApp</a></div>
+    <div class="total"><span class="muted">Total purchases <span id="dCnt"></span></span><b id="dTotal">&#8377;0</b></div>
+    <ul class="plist" id="plist"></ul>
+    <div style="text-align:center;margin:-.4rem 0 1rem"><button class="link" id="pMore" hidden>Show older purchases</button></div>
+    <form class="pform" id="pform">
+      <div class="field" style="margin:0"><label for="pItem">Item</label><input id="pItem" maxlength="80" placeholder="Rice 5 kg"></div>
+      <div class="field" style="margin:0"><label for="pAmt">Amount</label><input id="pAmt" inputmode="decimal" placeholder="120+45"></div>
+      <div class="field" style="margin:0"><label for="pDate">Date</label><input id="pDate" type="date"></div>
+      <button class="btn primary">Add</button>
+    </form>
+    <p class="muted" style="font-size:.8rem;margin:.4rem 0 0">Tip: type a sum like 120+45*2 in Amount and it's worked out for you.</p>
+    <div class="acts">
+      <button class="btn sm" id="dBill">Make bill</button><button class="btn sm" id="dCalc">Calculator</button><button class="btn sm" id="dEdit">Edit</button>
+      <button class="btn sm" id="dExp">Download Excel</button><button class="btn sm danger" id="dDel">Delete</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- profile -->
+<dialog id="profileDlg">
+  <div class="dh"><h2>Profile</h2><button class="icon-btn" autofocus data-close aria-label="Close">&#10005;</button></div>
+  <div class="db">
+    <div class="ps"><div class="who-big"><div class="avatar pr-av" id="prAv"></div><div><h3 id="prHead"></h3><div class="muted" id="prEmail"></div></div></div></div>
+    <div class="ps"><h4>Personal details</h4>
+      <div class="field"><label for="prName">Name</label><input id="prName" maxlength="60" autocomplete="name"></div>
+      <div class="field"><label for="prPhone">Phone number</label><input id="prPhone" type="tel" maxlength="20" autocomplete="tel"></div>
+      <div class="field"><label>Email ID</label><input id="prMail" readonly></div>
+      <button class="btn primary" id="prSave" type="button">Save details</button></div>
+    <div class="ps"><h4>Preferences</h4>
+      <div class="field"><label for="prTheme">Theme</label><select id="prTheme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+      <div class="field"><label for="prCurr">Currency</label><select id="prCurr"><option value="INR">Rupee (INR)</option><option value="USD">Dollar (USD)</option><option value="EUR">Euro (EUR)</option><option value="GBP">Pound (GBP)</option></select></div>
+      <div class="field"><label for="prSort">Default customer order</label><select id="prSort"><option value="name">Name A-Z</option><option value="spent">Top spenders</option><option value="recent">Newest first</option></select></div></div>
+    <div class="ps"><h4>Your data</h4><p class="hint">Download every customer and purchase.</p>
+      <div class="acts" style="margin-top:0"><button class="btn sm" id="prXlsx" type="button">Download Excel</button><button class="btn sm" id="prJson" type="button">Download backup (JSON)</button></div></div>
+    <div class="ps"><h4>Install app</h4><p class="hint" id="prInstText"></p><button class="btn primary" id="prInstall" type="button" hidden>Install app</button></div>
+    <div class="ps"><h4>Help &amp; legal</h4><div class="acts" style="margin-top:0"><button class="btn sm" type="button" data-legal="privacy">Privacy Policy</button><button class="btn sm" type="button" data-legal="terms">Terms of Use</button><button class="btn sm" type="button" data-legal="support">Contact support</button></div></div>
+    <div class="ps"><h4>Account</h4>
+      <div class="acts" style="margin-top:0"><button class="btn sm" id="prLogout" type="button">Log out</button><button class="btn sm danger" id="prDel" type="button">Delete account</button></div>
+      <p class="hint">We email a confirmation link to your registered email before anything is deleted.</p></div>
+  </div>
+</dialog>
+
+<dialog id="privacyDlg"><div class="dh"><h2>Privacy Policy</h2><button class="icon-btn" autofocus data-close aria-label="Close">&#10005;</button></div><div class="db legal"><p>Effective 14 October 2026. <b data-app="name">Bahi</b> is owned and run by <b data-app="owner"></b>, Hyderabad, India ("we").</p>
+<h4>1. What we collect</h4><ul><li><b>Account:</b> your email, your name and phone number (if you add them), and your Google name if you sign in with Google.</li><li><b>Shop data you enter:</b> customer names, phone numbers, notes, purchases, bills and shop details.</li><li><b>On your device:</b> theme, currency, sort order, shop details for bills, bill counters and a short log of bills you sent.</li></ul>
+<h4>2. Why we use it</h4><p>To sign you in with one-time email links, show your ledger, make bills and help you when you contact support. We do not sell your data, show ads or profile you.</p>
+<h4>3. Where it is stored</h4><p>Your data is stored with Google Firebase (Authentication and Cloud Firestore). Google processes it for us and servers may be outside India. Security rules let only your verified account read your data. We do not browse your ledger; we may look only if you ask for support or the law requires it.</p>
+<h4>4. Your customers' data</h4><p>You decide what to store about your customers. Please get their permission to keep their phone number and to send them bills, and keep only what you need.</p>
+<h4>5. Sending bills</h4><p>When you tap WhatsApp or SMS, the bill text is handed to that app on your phone. We do not see it, and delivery is covered by their policies.</p>
+<h4>6. Your rights</h4><p>Under India's Digital Personal Data Protection Act, 2023 you can access, correct, download and erase your data and withdraw consent. Download everything from Profile &rarr; Your data. Delete your account and all data from Profile &rarr; Account &rarr; Delete account.</p>
+<h4>7. How long we keep it</h4><p>Until you delete your account. Short-lived backups at Google may take a little longer to clear.</p>
+<h4>8. Security</h4><p>Data is encrypted in transit and only verified emails can sign in. Keep your email account safe because login links go there. No system is perfectly secure.</p>
+<h4>9. Children</h4><p>The app is for adults running a business, not for people under 18.</p>
+<h4>10. Changes and grievances</h4><p>We will post changes here with a new date. For questions or complaints write to <b data-app="owner"></b> at <a data-mail href="#"></a>. We reply within 30 days.</p></div></dialog>
+<dialog id="termsDlg"><div class="dh"><h2>Terms of Use</h2><button class="icon-btn" autofocus data-close aria-label="Close">&#10005;</button></div><div class="db legal"><p>By using <b data-app="name">Bahi</b> you agree to these terms. The app is owned by <b data-app="owner"></b>.</p>
+<h4>1. What the app is</h4><p>A simple ledger and bill maker for shops. It is a tool to help you; it is not accounting, tax or legal advice.</p>
+<h4>2. Bills and GST</h4><p>You are responsible for the correctness of every bill, including GSTIN, HSN codes, tax rates and whether you must charge GST. Rates change, so check with your accountant or the GST portal before relying on them. Bills made without a valid GSTIN are issued as bills of supply with no tax.</p>
+<h4>3. Your account</h4><p>Keep your email account secure. You are responsible for activity under your login. Use the app lawfully and do not store data you have no right to keep.</p>
+<h4>4. Your data</h4><p>You own your data. Download a backup regularly from Profile &rarr; Your data. See the Privacy Policy for how data is handled.</p>
+<h4>5. No warranty</h4><p>The app is provided as is. We try to keep it running but do not promise it will always be available or error free. Messages sent by WhatsApp or SMS depend on those services.</p>
+<h4>6. Liability</h4><p>To the extent the law allows, we are not liable for lost profit, lost data or indirect loss from using the app.</p>
+<h4>7. Ending use</h4><p>You can delete your account at any time. We may suspend accounts that misuse the app.</p>
+<h4>8. Law</h4><p>These terms follow the laws of India. Courts at Hyderabad, Telangana have jurisdiction.</p>
+<h4>9. Contact</h4><p><a data-mail href="#"></a></p></div></dialog>
+<dialog id="supportDlg"><div class="dh"><h2>Contact support</h2><button class="icon-btn" autofocus data-close aria-label="Close">&#10005;</button></div><div class="db legal"><p>We usually reply within 2 working days.</p>
+<div class="field"><label for="spMsg">How can we help?</label><textarea id="spMsg" rows="5" placeholder="Tell us what happened"></textarea></div>
+<div class="acts" style="margin-top:0"><button class="btn primary" id="spSend" type="button">Email support</button></div>
+<h4>Quick answers</h4><ul><li><b>No login email?</b> Check spam, wait a minute, then tap Resend link.</li><li><b>Wrong phone number error?</b> Use a 10-digit Indian mobile number starting with 6, 7, 8 or 9.</li><li><b>Delete my data?</b> Profile &rarr; Account &rarr; Delete account.</li></ul>
+<h4>Owner</h4><p><span data-app="owner"></span> &middot; <a data-mail href="#"></a></p></div></dialog>
+<!-- bill -->
+<dialog id="billDlg">
+  <div class="dh"><h2>Tax invoice</h2><button class="icon-btn" autofocus data-close aria-label="Close">&#10005;</button></div>
+  <div class="db">
+    <div class="bgrid"><div class="field"><label>Customer</label><input id="bCust" readonly></div><div class="field"><label>Registered number</label><input id="bTo" readonly></div></div>
+    <details style="margin-bottom:.8rem"><summary style="cursor:pointer;font-weight:700">Shop &amp; GST details (saved on this phone)</summary>
+      <div class="field"><label for="bShop">Shop name</label><input id="bShop" maxlength="40"></div>
+      <div class="field"><label for="bAddr">Address</label><input id="bAddr" maxlength="70"></div>
+      <div class="bgrid"><div class="field"><label for="bPh">Shop phone</label><input id="bPh" maxlength="14" inputmode="numeric"></div><div class="field"><label for="bGst">GSTIN</label><input id="bGst" maxlength="15" autocapitalize="characters" placeholder="36ABCDE1234F1Z5"></div></div>
+      <p class="muted" style="font-size:.8rem;margin:0" id="bGstNote"></p></details>
+    <div class="bgrid">
+      <div class="field"><label for="bIncl">Prices entered</label><select id="bIncl"><option value="1">Include GST (MRP)</option><option value="0">Exclude GST</option></select></div>
+      <div class="field"><label for="bSupply">Customer location</label><select id="bSupply"><option value="intra">Same state (CGST + SGST)</option><option value="inter">Other state (IGST)</option></select></div></div>
+    <label style="font-size:.85rem;font-weight:600;color:var(--muted)">Items</label><div id="bItems" style="margin-top:.3rem"></div>
+    <div class="acts" style="margin-top:0"><button class="btn sm" id="bAddRow" type="button">+ Add item</button><button class="btn sm" id="bAddPerfume" type="button">+ Perfume (HSN 3303)</button></div>
+    <div class="bgrid" style="margin-top:.8rem">
+      <div class="field"><label for="bDisc">Discount (Rs.)</label><input id="bDisc" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label for="bPay">Payment</label><select id="bPay"><option>Cash</option><option>UPI</option><option>Card</option><option>Credit (ledger)</option></select></div></div>
+    <div class="bprev" id="bPrev"></div>
+    <div class="acts" style="margin-top:0"><button class="btn primary" id="bWa" type="button">Send on WhatsApp</button><button class="btn" id="bSms" type="button">Send by SMS</button></div>
+    <div class="bst" id="bStatus" role="status" aria-live="polite"></div>
+    <div class="acts"><button class="btn sm" id="bSave" type="button" hidden>Save total to ledger</button><button class="btn sm" id="bNew" type="button">Start new bill</button></div>
+    <p class="muted" style="font-size:.8rem">GST is charged only when a valid GSTIN is saved; otherwise a bill of supply (no tax) is made. Confirm HSN codes and rates with your accountant or the GST portal.</p>
+  </div>
+</dialog>
+
+<!-- calculator -->
+<dialog id="calcDlg">
+  <div class="dh"><h2>Calculator</h2><button class="icon-btn" data-close aria-label="Close">&#10005;</button></div>
+  <div class="db"><div id="calcMount"></div>
+    <div class="acts" style="justify-content:center"><button class="btn primary" id="calcUse" hidden>Use as amount</button></div></div>
+</dialog>
+
+<div class="offline" id="offline" role="status">You are offline - reconnect to load or save data.</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+// =====================================================================
+//  Regulars v2
+//  Firestore layout (fast even with thousands of customers):
+//    users/{uid}/customers/{id}            name, phone, address, notes, totals
+//    users/{uid}/customers/{id}/purchases/{pid}   item, amount, date
+//    users/{uid}/meta/stats                running totals for the dashboard
+//  The list loads 30 customers at a time; search runs in the database.
+// =====================================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider,
+         isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink, sendPasswordResetEmail, sendEmailVerification, updateProfile, EmailAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, updatePassword, verifyBeforeUpdateEmail, deleteUser, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, setDoc, updateDoc,
+         onSnapshot, query, orderBy, limit, startAt, endAt, startAfter, writeBatch, increment, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ---------------- settings ----------------
+const CURRENCY = localStorage.getItem("regulars-currency") || "INR", LOCALE = CURRENCY === "INR" ? "en-IN" : "en-US", PAGE = 30;
+
+// ---------------- Firebase config ----------------
+// Either paste it in the yellow/green setup box when the app opens,
+// or replace the placeholders below.
+const saved = (() => { try { return JSON.parse(localStorage.getItem("regulars-firebase-config")); } catch { return null; } })();
+const firebaseConfig = saved || {
+  apiKey: "PASTE_YOUR_API_KEY", authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com", projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_PROJECT.appspot.com", messagingSenderId: "PASTE_SENDER_ID", appId: "PASTE_APP_ID",
+};
+const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = initializeFirestore(fbApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+
+// ---------------- helpers ----------------
+const $ = (id) => document.getElementById(id);
+const money = (n) => new Intl.NumberFormat(LOCALE, { style: "currency", currency: CURRENCY, maximumFractionDigits: 2 }).format(n || 0);
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const niceDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString(LOCALE, { day: "numeric", month: "short", year: "numeric" }) : "";
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const initials = (n) => (n || "?").trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); }
+
+// safe calculator (no eval)
+function evaluate(input) {
+  const s = String(input).replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace(/,/g, "").replace(/\s+/g, "");
+  if (!s || !/^[0-9+\-*/.()]+$/.test(s)) return NaN;
+  let i = 0; const fail = () => { throw new Error("bad"); };
+  const expr = () => { let v = term(); while (s[i] === "+" || s[i] === "-") { const o = s[i++]; const r = term(); v = o === "+" ? v + r : v - r; } return v; };
+  const term = () => { let v = factor(); while (s[i] === "*" || s[i] === "/") { const o = s[i++]; const r = factor(); v = o === "*" ? v * r : v / r; } return v; };
+  const factor = () => {
+    if (s[i] === "-") { i++; return -factor(); } if (s[i] === "+") { i++; return factor(); }
+    if (s[i] === "(") { i++; const v = expr(); if (s[i] !== ")") fail(); i++; return v; }
+    const m = /^(\d+\.?\d*|\.\d+)/.exec(s.slice(i)); if (!m) fail(); i += m[0].length; return parseFloat(m[0]);
+  };
+  try { const r = expr(); if (i !== s.length || !Number.isFinite(r)) return NaN; return Math.round(r * 100) / 100; } catch { return NaN; }
+}
+
+// ---------------- state ----------------
+let user = null, customers = [], limitN = PAGE, hasMore = false, searchTerm = "";
+let unList = null, unStats = null, unCust = null, unPur = null;
+const selected = new Set();
+let openId = null, openCust = null, purLimit = 50, editId = null, calcUse = null;
+
+const uref = (...p) => doc(db, "users", user.uid, ...p);
+const ucol = (...p) => collection(db, "users", user.uid, ...p);
+
+// ---------------- theme ----------------
+const root = document.documentElement;
+const th = localStorage.getItem("regulars-theme"); if (th) root.dataset.theme = th;
+$("themeBtn").onclick = () => {
+  const dark = root.dataset.theme === "dark";
+  root.dataset.theme = dark ? "light" : "dark"; localStorage.setItem("regulars-theme", root.dataset.theme);
+};
+document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+
+// ======================================================================
+//  AUTH
+// ======================================================================
+const errMap = {
+  "auth/invalid-email": "That email address doesn't look right.", "auth/missing-password": "Enter your password.",
+  "auth/weak-password": "Password must be at least 6 characters.", "auth/email-already-in-use": "This email already has an account. Try logging in.",
+  "auth/invalid-credential": "Email or password is incorrect.", "auth/user-not-found": "No account found for this email.",
+  "auth/wrong-password": "Email or password is incorrect.", "auth/too-many-requests": "Too many attempts. Wait a few minutes.",
+  "auth/popup-closed-by-user": "Google sign-in was closed before finishing.", "auth/network-request-failed": "No internet connection.",
+  "auth/unauthorized-domain": "This website isn't allowed yet. Add it in Firebase > Authentication > Settings > Authorized domains.",
+  "auth/operation-not-allowed": "This sign-in method is off. Enable it in Firebase > Authentication > Sign-in method.",
+};
+const friendly = (e) => errMap[e?.code] || e?.message || "Something went wrong.";
+errMap["auth/invalid-action-code"] = "This link was already used or is not valid. Request a new one.";
+errMap["auth/expired-action-code"] = "This link has expired. Request a new one.";
+errMap["auth/too-many-requests"] = "Too many tries. Please wait a few minutes and try again.";
+errMap["auth/operation-not-allowed"] = "Email link sign-in is switched off in Firebase. Turn it on (see README).";
+const BASE = location.origin + location.pathname;
+let lastMail = "";
+function showSent(em) { $("authAsk").hidden = true; $("authSent").hidden = false; $("sentTo").textContent = "We sent a one-time link to " + em; }
+function showAsk() { $("authAsk").hidden = false; $("authSent").hidden = true; $("authErr").textContent = ""; }
+function resetUi() { document.querySelectorAll("dialog[open]").forEach((d) => d.close()); showAsk(); $("email").value = ""; scrollTo(0, 0); }
+async function sendLink(em, extra) {
+  await sendSignInLinkToEmail(auth, em, { url: BASE + (extra || ""), handleCodeInApp: true });
+  localStorage.setItem("bahi-email", em);
+}
+function cooldown() {
+  let n = 30; const b = $("resend"); b.disabled = true;
+  const t = setInterval(() => { n--; b.textContent = n > 0 ? "Resend in " + n + "s" : "Resend link"; if (n <= 0) { b.disabled = false; clearInterval(t); } }, 1000);
+}
+$("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const em = $("email").value.trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(em)) { $("email").classList.add("bad"); $("authErr").textContent = "Enter a valid email address."; return; }
+  $("email").classList.remove("bad"); $("authErr").textContent = ""; $("authBtn").disabled = true;
+  try { await sendLink(em); lastMail = em; showSent(em); cooldown(); }
+  catch (err) { $("authErr").textContent = friendly(err); }
+  finally { $("authBtn").disabled = false; }
+});
+$("email").addEventListener("input", () => $("email").classList.remove("bad"));
+$("resend").onclick = async () => { try { await sendLink(lastMail); toast("Link sent again."); cooldown(); } catch (e) { toast(friendly(e)); } };
+$("otherMail").onclick = showAsk;
+const authReady = new Promise((r) => { const un = onAuthStateChanged(auth, () => { un(); r(); }); });
+async function handleEmailLink() {
+  const href = location.href; if (!isSignInWithEmailLink(auth, href)) return;
+  const del = new URLSearchParams(location.search).get("del") === "1";
+  history.replaceState({}, "", location.pathname);
+  let em = localStorage.getItem("bahi-email") || prompt("Type the email this link was sent to:"); if (!em) return; em = em.trim().toLowerCase();
+  try {
+    await authReady; const u = auth.currentUser;
+    if (del && u && (u.email || "").toLowerCase() === em) await reauthenticateWithCredential(u, EmailAuthProvider.credentialWithLink(em, href));
+    else await signInWithEmailLink(auth, em, href);
+    localStorage.removeItem("bahi-email");
+    if (del) await finishDelete();
+  } catch (err) { $("authErr").textContent = friendly(err); toast(friendly(err)); }
+}
+$("googleBtn").onclick = async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { $("authErr").textContent = friendly(e); } };
+$("logoutBtn").onclick = async () => { await signOut(auth); resetUi(); };
+const run = async (fn, ok) => { try { await fn(); if (ok) toast(ok); } catch (e) { toast(e.code ? friendly(e) : e.message); } };
+async function paintProfile() {
+  const u = auth.currentUser; if (!u) return;
+  $("prName").value = u.displayName || ""; $("prMail").value = u.email || ""; $("prEmail").textContent = u.email || "";
+  $("prHead").textContent = u.displayName || "Your account"; $("prAv").textContent = initials(u.displayName || u.email || "?");
+  $("who").textContent = u.displayName || u.email || ""; 
+  $("prTheme").value = root.dataset.theme === "dark" ? "dark" : "light"; $("prCurr").value = CURRENCY; $("prSort").value = localStorage.getItem("regulars-sort") || "name";
+  $("prPhone").value = ""; try { const s = await getDoc(uref("meta", "profile")); if (s.exists()) $("prPhone").value = s.data().phone || ""; } catch {}
+}
+window.openProfile = () => { $("profileDlg").showModal(); paintProfile(); };
+$("prSave").onclick = () => run(async () => {
+  const n = $("prName").value.trim(), ph = $("prPhone").value.trim();
+  if (!n) throw new Error("Enter your name."); if (window.normPhone(ph) === null) throw new Error("Enter a valid 10-digit Indian mobile number.");
+  await updateProfile(auth.currentUser, { displayName: n }); await setDoc(uref("meta", "profile"), { phone: window.normPhone(ph) }, { merge: true }); paintProfile();
+}, "Details saved.");
+$("prTheme").onchange = () => { root.dataset.theme = $("prTheme").value; localStorage.setItem("regulars-theme", root.dataset.theme); };
+$("prCurr").onchange = () => { localStorage.setItem("regulars-currency", $("prCurr").value); location.reload(); };
+$("prSort").onchange = () => { localStorage.setItem("regulars-sort", $("prSort").value); $("sort").value = $("prSort").value; limitN = PAGE; startList(); toast("Saved."); };
+async function fetchAll() {
+  const out = []; let last = null;
+  for (;;) {
+    const q = last ? query(ucol("customers"), orderBy("__name__"), startAfter(last), limit(500)) : query(ucol("customers"), orderBy("__name__"), limit(500));
+    const cs = await getDocs(q); if (!cs.size) break;
+    for (let i = 0; i < cs.docs.length; i += 10) await Promise.all(cs.docs.slice(i, i + 10).map(async (d) => {
+      const ps = await getDocs(ucol("customers", d.id, "purchases")); out.push({ id: d.id, ...d.data(), purchases: ps.docs.map((x) => ({ id: x.id, ...x.data() })) }); }));
+    last = cs.docs[cs.docs.length - 1]; toast("Loaded " + out.length + " customers..."); if (cs.size < 500) break;
+  }
+  return out;
+}
+$("prXlsx").onclick = () => run(async () => {
+  toast("Preparing Excel..."); const all = await fetchAll(); if (!all.length) throw new Error("No customers yet.");
+  const pr = []; all.forEach((c) => c.purchases.forEach((p) => pr.push({ Customer: c.name || "", Contact: c.phone || "", Date: p.date || "", Item: p.item || "", Amount: p.amount || 0 })));
+  writeBook(all.map(custRow), pr, "regulars_all_data_" + fileDate());
+}, "Excel downloaded.");
+$("prJson").onclick = () => run(async () => {
+  const all = await fetchAll(), u = auth.currentUser, a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), account: { name: u.displayName, email: u.email }, customers: all }, null, 2)], { type: "application/json" }));
+  a.download = "regulars_backup_" + fileDate() + ".json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}, "Backup downloaded.");
+$("prLogout").onclick = async () => { await signOut(auth); resetUi(); };
+async function finishDelete() {
+  if (!confirm("Last step: delete your account and ALL customer data forever?")) return;
+  toast("Deleting..."); let n = 0;
+  for (;;) {
+    const cs = await getDocs(query(ucol("customers"), limit(100))); if (!cs.size) break;
+    const refs = [];
+    for (let i = 0; i < cs.docs.length; i += 10) await Promise.all(cs.docs.slice(i, i + 10).map(async (d) => {
+      (await getDocs(ucol("customers", d.id, "purchases"))).docs.forEach((x) => refs.push(x.ref)); refs.push(d.ref); }));
+    for (let i = 0; i < refs.length; i += 400) { const b = writeBatch(db); refs.slice(i, i + 400).forEach((r) => b.delete(r)); await b.commit(); }
+    n += cs.size; toast("Deleted " + n + " customers...");
+  }
+  const b = writeBatch(db); b.delete(uref("meta", "stats")); b.delete(uref("meta", "profile")); await b.commit();
+  $("profileDlg").close(); await deleteUser(auth.currentUser); resetUi(); toast("Your account was deleted.");
+}
+$("prDel").onclick = () => run(async () => {
+  const u = auth.currentUser;
+  if (!confirm("Delete your account and ALL data permanently? We will first email a confirmation link to " + u.email + ".")) return;
+  if (u.providerData.every((p) => p.providerId === "google.com")) { await reauthenticateWithPopup(u, new GoogleAuthProvider()); await finishDelete(); return; }
+  await sendLink(u.email, "?del=1");
+}, "Confirmation link sent to your registered email. Open it on this device to finish.");
+
+
+$("setup").hidden = isConfigured;
+$("cfgSave").onclick = () => {
+  const cfg = {}; for (const m of $("cfgInput").value.matchAll(/(\w+)\s*:\s*["']([^"']+)["']/g)) cfg[m[1]] = m[2];
+  if (!cfg.apiKey || !cfg.projectId || !cfg.appId) { $("cfgErr").textContent = "Couldn't find apiKey, projectId and appId. Paste the whole config block."; return; }
+  localStorage.setItem("regulars-firebase-config", JSON.stringify(cfg)); location.reload();
+};
+
+onAuthStateChanged(auth, (u) => {
+  if (u && !u.emailVerified) return; // unverified (fake) emails never enter the app
+  user = u;
+  if (u) { $("authView").hidden = true; $("appView").hidden = false; $("who").textContent = u.displayName || u.email || ""; $("sort").value = localStorage.getItem("regulars-sort") || "name"; startStats(); startList(); }
+  else {
+    [unList, unStats, unCust, unPur].forEach((f) => f && f()); unList = unStats = unCust = unPur = null;
+    customers = []; selected.clear(); $("appView").hidden = true; $("authView").hidden = false; resetUi();
+  }
+});
+handleEmailLink();
+
+// ======================================================================
+//  DASHBOARD NUMBERS (one small document, not a scan of all customers)
+// ======================================================================
+function startStats() {
+  if (unStats) unStats();
+  unStats = onSnapshot(uref("meta", "stats"), (s) => {
+    const d = s.data() || {}, ym = todayISO().slice(0, 7);
+    $("sTotal").textContent = money(Math.max(0, d.totalSales || 0));
+    $("sMonth").textContent = money(Math.max(0, d.months?.[ym] || 0));
+    $("sCount").textContent = Math.max(0, d.customerCount || 0);
+  }, () => {});
+}
+
+// ======================================================================
+//  CUSTOMER LIST: paged, realtime, searched in the database
+// ======================================================================
+function listQuery() {
+  const col = ucol("customers");
+  if (searchTerm) {
+    const digits = searchTerm.replace(/\D/g, "");
+    if (digits.length >= 3 && digits.length >= searchTerm.replace(/\s/g, "").length - 1)
+      return query(col, orderBy("phoneDigits"), startAt(digits), endAt(digits + "\uf8ff"), limit(limitN));
+    const q = searchTerm.toLowerCase();
+    return query(col, orderBy("nameLower"), startAt(q), endAt(q + "\uf8ff"), limit(limitN));
+  }
+  const s = $("sort").value;
+  if (s === "spent") return query(col, orderBy("totalSpent", "desc"), limit(limitN));
+  if (s === "recent") return query(col, orderBy("createdAt", "desc"), limit(limitN));
+  return query(col, orderBy("nameLower"), limit(limitN));
+}
+function startList() {
+  if (unList) unList();
+  unList = onSnapshot(listQuery(), { includeMetadataChanges: true }, (snap) => {
+    customers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    hasMore = snap.docs.length >= limitN;
+    const off = snap.metadata.fromCache && !navigator.onLine;
+    $("syncTxt").textContent = off ? "Offline" : snap.metadata.hasPendingWrites ? "Saving..." : "Live";
+    $("dot").classList.toggle("off", off);
+    renderList();
+  }, (e) => toast("Couldn't load: " + e.message));
+}
+function renderList() {
+  $("empty").hidden = customers.length > 0;
+  $("emptyH").textContent = searchTerm ? "No match" : "No customers yet";
+  $("emptyP").textContent = searchTerm ? "Try another name or phone number." : 'Tap "Add customer" to save your first regular.';
+  $("rows").hidden = customers.length === 0;
+  $("rows").innerHTML = customers.map((c) => `
+    <li class="row" data-id="${c.id}">
+      <input type="checkbox" class="pick" ${selected.has(c.id) ? "checked" : ""} aria-label="Select ${esc(c.name)}">
+      <button class="row-main" data-open>
+        <span class="avatar">${esc(initials(c.name))}</span>
+        <span class="who"><b>${esc(c.name)}</b><span>${esc([c.phone, c.address].filter(Boolean).join(" · ") || "No contact details")}</span></span>
+      </button>
+      <span class="c-contact">${esc(c.phone || "-")}</span><span class="c-addr">${esc(c.address || "-")}</span>
+      <div class="amt"><b>${money(c.totalSpent)}</b><span>${c.lastPurchase ? esc(niceDate(c.lastPurchase)) : "No purchases"}</span></div>
+    </li>`).join("");
+  $("shown").textContent = customers.length ? `Showing ${customers.length}` : "";
+  $("moreBtn").hidden = !hasMore;
+  syncSel();
+}
+function syncSel() {
+  const n = selected.size; $("selbar").hidden = n === 0; $("selTxt").textContent = `${n} selected`;
+  $("checkAll").checked = customers.length > 0 && customers.every((c) => selected.has(c.id));
+}
+$("rows").addEventListener("click", (e) => {
+  const li = e.target.closest(".row"); if (!li) return; const id = li.dataset.id;
+  if (e.target.classList.contains("pick")) { e.target.checked ? selected.add(id) : selected.delete(id); syncSel(); return; }
+  if (e.target.closest("[data-open]")) openDetail(id);
+});
+$("checkAll").onchange = (e) => { customers.forEach((c) => (e.target.checked ? selected.add(c.id) : selected.delete(c.id))); renderList(); };
+$("clearSel").onclick = () => { selected.clear(); renderList(); };
+$("moreBtn").onclick = () => { limitN += PAGE; startList(); };
+$("sort").onchange = () => { limitN = PAGE; startList(); };
+let st; $("search").addEventListener("input", (e) => { clearTimeout(st); st = setTimeout(() => { searchTerm = e.target.value.trim(); limitN = PAGE; startList(); }, 300); });
+
+// ======================================================================
+//  ADD / EDIT / DELETE CUSTOMER
+// ======================================================================
+function openForm(c = null) {
+  editId = c?.id || null; $("formTitle").textContent = c ? "Edit customer" : "Add customer";
+  $("fName").value = c?.name || ""; $("fPhone").value = c?.phone || ""; $("fAddr").value = c?.address || ""; $("fNotes").value = c?.notes || "";
+  $("formDlg").showModal();
+}
+$("addBtn").onclick = () => openForm();
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("fName").value.trim(); if (!name) return toast("Enter the customer's name.");
+  const phone = window.normPhone($("fPhone").value); if (phone === null) { $("fPhone").dispatchEvent(new Event("input")); return toast("Enter a valid 10-digit Indian mobile number (starts with 6-9)."); }
+  const data = { name, nameLower: name.toLowerCase(), phone, phoneDigits: phone.replace(/\D/g, ""), address: $("fAddr").value.trim(), notes: $("fNotes").value.trim() };
+  const b = writeBatch(db);
+  if (editId) b.update(uref("customers", editId), data);
+  else {
+    b.set(doc(ucol("customers")), { ...data, totalSpent: 0, purchaseCount: 0, lastPurchase: "", lastItem: "", createdAt: serverTimestamp() });
+    b.set(uref("meta", "stats"), { customerCount: increment(1) }, { merge: true });
+  }
+  b.commit().catch((err) => toast("Couldn't save: " + err.message));   // not awaited: also works offline
+  $("formDlg").close(); toast(editId ? "Customer updated." : "Customer added.");
+});
+
+async function deleteCustomer(c) {
+  if (!confirm(`Delete ${c.name} and all their purchases? This can't be undone.`)) return;
+  try {
+    toast("Deleting...");
+    const ps = await getDocs(ucol("customers", c.id, "purchases"));
+    const months = {}; let sum = 0;
+    ps.docs.forEach((d) => { const p = d.data(); sum += p.amount || 0; const m = (p.date || "").slice(0, 7); if (m) months[m] = (months[m] || 0) + (p.amount || 0); });
+    for (let i = 0; i < ps.docs.length; i += 400) { const b = writeBatch(db); ps.docs.slice(i, i + 400).forEach((d) => b.delete(d.ref)); await b.commit(); }
+    const b = writeBatch(db); b.delete(uref("customers", c.id));
+    const mi = {}; Object.entries(months).forEach(([m, v]) => (mi[m] = increment(-v)));
+    b.set(uref("meta", "stats"), { customerCount: increment(-1), totalSales: increment(-sum), months: mi }, { merge: true });
+    await b.commit(); selected.delete(c.id); $("detailDlg").close(); toast("Customer deleted.");
+  } catch (e) { toast("Couldn't delete: " + e.message); }
+}
+
+// ======================================================================
+//  CUSTOMER DETAIL + PURCHASES
+// ======================================================================
+function openDetail(id) {
+  openId = id; openCust = customers.find((c) => c.id === id) || null; purLimit = 50;
+  $("pItem").value = ""; $("pAmt").value = ""; $("pDate").value = todayISO(); paintHead();
+  if (unCust) unCust(); if (unPur) unPur();
+  unCust = onSnapshot(uref("customers", id), (s) => { if (!s.exists()) return; openCust = { id, ...s.data() }; paintHead(); });
+  watchPurchases();
+  $("detailDlg").showModal();
+}
+function watchPurchases() {
+  if (unPur) unPur();
+  unPur = onSnapshot(query(ucol("customers", openId, "purchases"), orderBy("date", "desc"), limit(purLimit)), (s) => {
+    $("plist").innerHTML = s.docs.length
+      ? s.docs.map((d) => { const p = d.data(); return `<li><div class="pm"><b>${esc(p.item || "Purchase")}</b><span>${esc(niceDate(p.date))}</span></div>
+          <b>${money(p.amount)}</b><button class="icon-btn" data-del="${d.id}" data-amt="${p.amount}" data-date="${esc(p.date)}" aria-label="Remove purchase" style="width:34px;height:34px">&#10005;</button></li>`; }).join("")
+      : `<li><span class="muted">No purchases yet. Add the first one below.</span></li>`;
+    $("pMore").hidden = s.docs.length < purLimit;
+  });
+}
+function paintHead() {
+  const c = openCust; if (!c) return;
+  $("dAv").textContent = initials(c.name); $("dName").textContent = c.name;
+  $("dSub").textContent = [c.phone, c.address].filter(Boolean).join(" · ") || "No contact details";
+  $("dTotal").textContent = money(c.totalSpent); $("dCnt").textContent = c.purchaseCount ? `(${c.purchaseCount})` : "";
+  const digits = (c.phone || "").replace(/\D/g, "");
+  $("dCall").hidden = !digits; $("dCall").href = "tel:" + (c.phone || "");
+  $("dWa").hidden = !digits; $("dWa").href = "https://wa.me/" + (digits.length === 10 ? "91" + digits : digits);
+}
+$("detailDlg").addEventListener("close", () => { if (unCust) unCust(); if (unPur) unPur(); unCust = unPur = null; openId = null; });
+$("pMore").onclick = () => { purLimit += 50; watchPurchases(); };
+
+$("pform").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const amount = evaluate($("pAmt").value);
+  if (Number.isNaN(amount) || amount <= 0) return toast("Enter a valid amount, like 250 or 120+45.");
+  const item = $("pItem").value.trim(), date = $("pDate").value || todayISO(), c = openCust, ym = date.slice(0, 7);
+  const newest = date >= (c.lastPurchase || "");
+  const b = writeBatch(db);
+  b.set(doc(ucol("customers", openId, "purchases")), { item, amount, date, createdAt: serverTimestamp() });
+  b.update(uref("customers", openId), { totalSpent: increment(amount), purchaseCount: increment(1), ...(newest ? { lastPurchase: date, lastItem: item } : {}) });
+  b.set(uref("meta", "stats"), { totalSales: increment(amount), months: { [ym]: increment(amount) } }, { merge: true });
+  b.commit().catch((err) => toast("Couldn't save purchase: " + err.message));
+  $("pItem").value = ""; $("pAmt").value = ""; $("pItem").focus();
+});
+$("pAmt").addEventListener("blur", () => { const v = evaluate($("pAmt").value); if (!Number.isNaN(v)) $("pAmt").value = v; });
+$("plist").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-del]"); if (!btn) return;
+  if (!confirm("Remove this purchase?")) return;
+  const amt = Number(btn.dataset.amt) || 0, ym = (btn.dataset.date || "").slice(0, 7);
+  const b = writeBatch(db);
+  b.delete(uref("customers", openId, "purchases", btn.dataset.del));
+  b.update(uref("customers", openId), { totalSpent: increment(-amt), purchaseCount: increment(-1) });
+  b.set(uref("meta", "stats"), { totalSales: increment(-amt), ...(ym ? { months: { [ym]: increment(-amt) } } : {}) }, { merge: true });
+  b.commit().catch((err) => toast("Couldn't remove: " + err.message));
+});
+$("dEdit").onclick = () => { const c = openCust; $("detailDlg").close(); openForm(c); };
+$("dDel").onclick = () => deleteCustomer(openCust);
+$("dExp").onclick = () => exportFull([openCust]);
+$("dCalc").onclick = () => openCalc((v) => { $("pAmt").value = v; $("pAmt").focus(); });
+
+// ======================================================================
+//  EXCEL EXPORT
+// ======================================================================
+const fileDate = () => new Date().toISOString().slice(0, 10);
+const widths = (rows) => rows.length ? Object.keys(rows[0]).map((k) => ({ wch: Math.min(40, Math.max(k.length, ...rows.map((r) => String(r[k] ?? "").length)) + 2) })) : [];
+const custRow = (c) => ({ Name: c.name || "", Contact: c.phone || "", Address: c.address || "", Notes: c.notes || "",
+  "No. of purchases": c.purchaseCount || 0, "Total spent": Math.round((c.totalSpent || 0) * 100) / 100, "Last purchase": c.lastPurchase || "" });
+function writeBook(custRows, purRows, name) {
+  if (typeof XLSX === "undefined") throw new Error("Excel library didn't load. Check your internet.");
+  const wb = XLSX.utils.book_new(), s1 = XLSX.utils.json_to_sheet(custRows); s1["!cols"] = widths(custRows); XLSX.utils.book_append_sheet(wb, s1, "Customers");
+  if (purRows) { const s2 = XLSX.utils.json_to_sheet(purRows.length ? purRows : [{ Customer: "", Contact: "", Date: "", Item: "", Amount: "" }]); s2["!cols"] = widths(purRows); XLSX.utils.book_append_sheet(wb, s2, "Purchases"); }
+  XLSX.writeFile(wb, name.replace(/[\\/:*?"<>|]+/g, "").trim().replace(/\s+/g, "_") + ".xlsx");
+}
+// Selected / single customer: full details including every purchase
+async function exportFull(list) {
+  list = list.filter(Boolean); if (!list.length) return toast("Select at least one customer first.");
+  try {
+    toast("Preparing Excel...");
+    const purRows = [];
+    for (let i = 0; i < list.length; i += 10) {
+      await Promise.all(list.slice(i, i + 10).map(async (c) => {
+        const s = await getDocs(query(ucol("customers", c.id, "purchases"), orderBy("date", "desc")));
+        s.docs.forEach((d) => { const p = d.data(); purRows.push({ Customer: c.name || "", Contact: c.phone || "", Date: p.date || "", Item: p.item || "", Amount: p.amount || 0 }); });
+      }));
+    }
+    writeBook(list.map(custRow), purRows, list.length === 1 ? `${list[0].name}_${fileDate()}` : `customers_${fileDate()}`);
+    toast("Excel file downloaded.");
+  } catch (e) { toast(e.message); }
+}
+$("expSel").onclick = async () => {
+  // selected ids may span pages that were loaded earlier; use what is loaded
+  exportFull(customers.filter((c) => selected.has(c.id)));
+};
+// Everyone: customer summary (fast, any size). Pages through 500 at a time.
+$("expAll").onclick = async () => {
+  try {
+    toast("Preparing Excel..."); const rows = []; let last = null;
+    for (;;) {
+      const q = last ? query(ucol("customers"), orderBy("nameLower"), startAfter(last), limit(500)) : query(ucol("customers"), orderBy("nameLower"), limit(500));
+      const s = await getDocs(q); s.docs.forEach((d) => rows.push(custRow(d.data()))); if (s.docs.length < 500) break; last = s.docs[s.docs.length - 1];
+    }
+    if (!rows.length) return toast("No customers to download yet.");
+    writeBook(rows, null, `all_customers_${fileDate()}`); toast(`Downloaded ${rows.length} customers.`);
+  } catch (e) { toast(e.message); }
+};
+
+// ======================================================================
+//  CALCULATOR
+// ======================================================================
+const KEYS = [["C","c"],["⌫","b"],["(","op"],[")","op"],["7"],["8"],["9"],["÷","op"],["4"],["5"],["6"],["×","op"],["1"],["2"],["3"],["−","op"],["0"],["."],["=","eq"],["+","op"]];
+$("calcMount").innerHTML = `<input class="calc-display" id="cd" type="text" inputmode="none" autocomplete="off" placeholder="0" aria-label="Calculator display"><div class="keys" id="ck"></div>`;
+const cd = $("cd");
+KEYS.forEach(([l, k]) => { const b = document.createElement("button"); b.type = "button"; b.textContent = l; if (k === "op") b.className = "op"; if (k === "eq") b.className = "eq";
+  b.onclick = () => { if (l === "C") cd.value = ""; else if (l === "⌫") cd.value = cd.value.slice(0, -1);
+    else if (l === "=") { const r = evaluate(cd.value); cd.placeholder = Number.isNaN(r) ? "Invalid" : "0"; cd.value = Number.isNaN(r) ? "" : String(r); } else cd.value += l; };
+  $("ck").appendChild(b); });
+cd.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); const r = evaluate(cd.value); cd.value = Number.isNaN(r) ? "" : String(r); } });
+function openCalc(use = null) { calcUse = use; $("calcUse").hidden = !use; cd.value = ""; $("calcDlg").showModal(); cd.focus(); }
+$("calcBtn").onclick = () => openCalc();
+$("calcUse").onclick = () => { const v = evaluate(cd.value); if (Number.isNaN(v)) return toast("Work out an amount first."); $("calcDlg").close(); calcUse && calcUse(v); };
+
+window.addEventListener("offline", () => { $("syncTxt").textContent = "Offline"; $("dot").classList.add("off"); });
+window.addEventListener("online", () => { $("syncTxt").textContent = "Live"; $("dot").classList.remove("off"); });
+// keyboard shortcuts for computers (ignored while typing or when a window is open)
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || $("appView").hidden || document.querySelector("dialog[open]")) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if (e.key === "/") { e.preventDefault(); $("search").focus(); }
+  else if (e.key.toLowerCase() === "n") { e.preventDefault(); openForm(); }
+  else if (e.key.toLowerCase() === "c") { e.preventDefault(); openCalc(); }
+});
+setMode("in");
+</script>
+<script>
+/* Bill maker (GST), phone rule, legal pages: plain JS, no Firebase */
+(()=>{const $=id=>document.getElementById(id),L=localStorage,LK="regulars-billlog",APP=window.APP||{};
+window.normPhone=v=>{let d=String(v||"").replace(/\D/g,"");if(!d)return "";if(d.length===12&&d.startsWith("91"))d=d.slice(2);else if(d.length===11&&d[0]==="0")d=d.slice(1);return /^[6-9]\d{9}$/.test(d)?d:null};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const r2=n=>Math.round((n+Number.EPSILON)*100)/100,R=n=>r2(n).toFixed(2),num=v=>parseFloat(v)||0;
+const say=m=>{const e=$("toast");if(e){e.textContent=m;e.classList.add("show");clearTimeout(say.t);say.t=setTimeout(()=>e.classList.remove("show"),2600)}};
+const GSTIN=/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/,ST={"01":"Jammu & Kashmir","02":"Himachal Pradesh","03":"Punjab","04":"Chandigarh","05":"Uttarakhand","06":"Haryana","07":"Delhi","08":"Rajasthan","09":"Uttar Pradesh","10":"Bihar","11":"Sikkim","12":"Arunachal Pradesh","13":"Nagaland","14":"Manipur","15":"Mizoram","16":"Tripura","17":"Meghalaya","18":"Assam","19":"West Bengal","20":"Jharkhand","21":"Odisha","22":"Chhattisgarh","23":"Madhya Pradesh","24":"Gujarat","26":"Dadra & Nagar Haveli and Daman & Diu","27":"Maharashtra","29":"Karnataka","30":"Goa","31":"Lakshadweep","32":"Kerala","33":"Tamil Nadu","34":"Puducherry","35":"Andaman & Nicobar","36":"Telangana","37":"Andhra Pradesh","38":"Ladakh"};
+function words(n){const a="Zero One Two Three Four Five Six Seven Eight Nine Ten Eleven Twelve Thirteen Fourteen Fifteen Sixteen Seventeen Eighteen Nineteen".split(" "),b="  Twenty Thirty Forty Fifty Sixty Seventy Eighty Ninety".split(" ");
+ const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?" "+a[x%10]:""),three=x=>(x>=100?a[Math.floor(x/100)]+" Hundred"+(x%100?" ":""):"")+(x%100?two(x%100):"");
+ if(!n)return "Rupees Zero Only";const p=[[Math.floor(n/1e7),"Crore"],[Math.floor(n/1e5)%100,"Lakh"],[Math.floor(n/1e3)%100,"Thousand"],[n%1000,""]];
+ return "Rupees "+p.filter(x=>x[0]).map(x=>three(x[0])+(x[1]?" "+x[1]:"")).join(" ")+" Only"}
+let billNo=1,ctx=null,sends=[],saved=false,pend=null;
+const fy=()=>{const d=new Date(),y=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;return String(y).slice(2)+String(y+1).slice(2)},CK=()=>"bahi-inv-"+fy();
+const inv=()=>"INV/"+fy()+"/"+String(billNo).padStart(4,"0"),reg=()=>{const g=$("bGst").value.trim().toUpperCase();return GSTIN.test(g)?g:""};
+["bShop","bAddr","bPh","bGst"].forEach(k=>{$(k).value=L.getItem("rb-"+k)||(k==="bShop"?(APP.name?"My Shop":"My Shop"):"");$(k).addEventListener("input",()=>{if(k==="bGst")$(k).value=$(k).value.toUpperCase();L.setItem("rb-"+k,$(k).value);draw()})});
+["bIncl","bSupply"].forEach(k=>{$(k).value=L.getItem("rb-"+k)||$(k).value;$(k).addEventListener("input",()=>{L.setItem("rb-"+k,$(k).value);draw()})});
+function row(n="",h="",q="1",r="",g="18"){const d=document.createElement("div");d.className="bi2";
+ d.innerHTML='<div class="bi2-top"><input class="n" placeholder="Item name" maxlength="40"><button type="button" aria-label="Remove">&#10005;</button></div><div class="bi2-grid"><input class="h" inputmode="numeric" placeholder="HSN" maxlength="8"><input class="q" inputmode="decimal" placeholder="Qty" value="'+q+'"><input class="r" inputmode="decimal" placeholder="Price"><select class="g" aria-label="GST rate">'+[0,5,12,18,28,40].map(x=>'<option value="'+x+'"'+(String(x)===String(g)?" selected":"")+'>'+x+'%</option>').join("")+'</select></div>';
+ d.querySelector(".n").value=n;d.querySelector(".h").value=h;d.querySelector(".r").value=r;d.oninput=draw;d.querySelector("button").onclick=()=>{d.remove();draw()};$("bItems").appendChild(d)}
+function calc(){const incl=$("bIncl").value==="1",inter=$("bSupply").value==="inter",gstin=reg();
+ const ls=[...document.querySelectorAll("#bItems .bi2")].map(d=>({n:d.querySelector(".n").value.trim(),h:d.querySelector(".h").value.trim(),q:num(d.querySelector(".q").value),r:num(d.querySelector(".r").value),p:num(d.querySelector(".g").value)})).filter(x=>x.n&&x.q>0&&x.r>0);
+ const gross=ls.reduce((a,x)=>a+r2(x.q*x.r),0),disc=Math.min(num($("bDisc").value),gross);
+ ls.forEach(l=>{l.amt=r2(l.q*l.r);const net=l.amt-(gross?disc*l.amt/gross:0),p=gstin?l.p:0;l.rate=p;
+  if(incl){l.taxable=r2(net/(1+p/100));l.tax=r2(net-l.taxable)}else{l.taxable=r2(net);l.tax=r2(net*p/100)}});
+ const g={};ls.forEach(l=>{const o=g[l.rate]||(g[l.rate]={rate:l.rate,taxable:0,tax:0});o.taxable=r2(o.taxable+l.taxable);o.tax=r2(o.tax+l.tax)});
+ const taxable=r2(ls.reduce((a,l)=>a+l.taxable,0)),tax=r2(ls.reduce((a,l)=>a+l.tax,0)),raw=r2(taxable+tax),total=Math.round(raw);
+ return{ls,gross,disc,groups:Object.values(g).sort((a,b)=>a.rate-b.rate),taxable,tax,raw,total,ro:r2(total-raw),gstin,inter,incl,state:gstin?ST[gstin.slice(0,2)]||"":""}}
+function note(){const v=$("bGst").value.trim(),ok=!v||GSTIN.test(v);$("bGst").classList.toggle("bad",!ok);
+ $("bGstNote").textContent=!v?"No GSTIN saved: bills are issued as Bill of Supply with no tax.":ok?"Valid GSTIN. State: "+(ST[v.slice(0,2)]||"unknown")+". Tax invoices will be issued.":"GSTIN must be 15 characters like 36ABCDE1234F1Z5."}
+const now=()=>new Date(),stamp=()=>now().toLocaleDateString("en-IN")+" "+now().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+function receipt(){const d=calc(),tr=(a,b,c)=>'<tr><td'+(c?' class="s"':'')+'>'+a+'</td><td class="r">'+b+'</td></tr>',gs=d.gstin;
+ const gr=d.groups.map(x=>'<tr><td>'+x.rate+'%</td><td class="r">'+R(x.taxable)+'</td><td class="r">'+(d.inter?R(x.tax):R(x.tax/2))+'</td>'+(d.inter?'':'<td class="r">'+R(x.tax/2)+'</td>')+'</tr>').join('');
+ return '<div class="rc"><h3>'+esc($("bShop").value||"My Shop")+'</h3><div class="c">'+esc($("bAddr").value)+'</div>'+($("bPh").value?'<div class="c">Ph: '+esc($("bPh").value)+'</div>':'')+(gs?'<div class="c">GSTIN: '+gs+'</div>':'')
+ +'<hr><div class="c"><b>'+(gs?'TAX INVOICE':'BILL OF SUPPLY')+'</b></div><table>'+tr('Inv: '+inv(),now().toLocaleDateString("en-IN"))+tr('Cust: '+esc($("bCust").value||"Walk-in"),now().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}))+(gs?tr('Supply: '+(d.inter?'Inter-state (IGST)':esc(d.state||'Intra-state')),''):'')+'</table><hr><table>'
+ +(d.ls.length?d.ls.map(x=>'<tr><td colspan="2">'+esc(x.n)+'</td></tr>'+tr((x.h?'HSN '+esc(x.h)+' ':'')+x.q+' x '+R(x.r)+(gs?' @'+x.rate+'%':''),R(x.amt),1)).join(''):'<tr><td class="c" colspan="2">Add items above</td></tr>')+'</table><hr><table>'
+ +tr('Items: '+d.ls.length+'  Qty: '+d.ls.reduce((a,x)=>a+x.q,0),'')+tr('Sub total',R(d.gross))+(d.disc?tr('Discount','-'+R(d.disc)):'')+(gs?tr('Taxable value',R(d.taxable)):'')+'</table>'
+ +(gs&&d.groups.length?'<hr><table><tr><th style="text-align:left">GST</th><th class="r">Taxable</th><th class="r">'+(d.inter?'IGST':'CGST')+'</th>'+(d.inter?'':'<th class="r">SGST</th>')+'</tr>'+gr+'</table>':'')
+ +'<hr><table>'+(gs?tr('Total GST',R(d.tax)):'')+(d.ro?tr('Round off',(d.ro>0?'+':'')+R(d.ro)):'')+'<tr class="big"><td>TOTAL</td><td class="r">Rs. '+R(d.total)+'</td></tr></table><div class="s">'+words(d.total)+'</div><hr><div>Paid by: '+esc($("bPay").value)+'</div>'
+ +'<div class="s">'+(gs?(d.incl?'Prices include GST. ':'')+'E&amp;OE. Computer generated invoice.':'Not a tax invoice. No GST charged.')+'</div><hr><div class="c">Thank you! Visit again.</div></div>'}
+function text(d){const o=["*"+($("bShop").value||"My Shop")+"*"];if($("bAddr").value)o.push($("bAddr").value);if($("bPh").value)o.push("Ph: "+$("bPh").value);if(d.gstin)o.push("GSTIN: "+d.gstin);
+ o.push(d.gstin?"TAX INVOICE":"BILL OF SUPPLY","Inv: "+inv()+" | "+stamp(),"Customer: "+ctx.name,"------------------");
+ d.ls.forEach((x,i)=>o.push((i+1)+". "+x.n+(x.h?" (HSN "+x.h+")":"")+"\n    "+x.q+" x "+R(x.r)+(d.gstin?" @"+x.rate+"%":"")+" = "+R(x.amt)));o.push("------------------","Sub total: Rs. "+R(d.gross));
+ if(d.disc)o.push("Discount: -Rs. "+R(d.disc));
+ if(d.gstin){o.push("Taxable value: Rs. "+R(d.taxable));d.groups.forEach(x=>{if(!x.rate)return;o.push(d.inter?"IGST "+x.rate+"%: Rs. "+R(x.tax):"CGST "+x.rate/2+"%: Rs. "+R(x.tax/2)+" + SGST "+x.rate/2+"%: Rs. "+R(x.tax/2))});o.push("Total GST: Rs. "+R(d.tax))}
+ if(d.ro)o.push("Round off: "+(d.ro>0?"+":"")+R(d.ro));o.push("*TOTAL: Rs. "+R(d.total)+"*","("+words(d.total)+")","Paid by: "+$("bPay").value,"",d.gstin?(d.incl?"Prices include GST. ":"")+"E&OE. Computer generated invoice.":"Not a tax invoice. No GST charged.","Thank you! Visit again.");return o.join("\n")}
+function draw(){note();$("bPrev").innerHTML=receipt()}
+function st(kind,html,btns){const e=$("bStatus");e.className="bst show "+kind;e.innerHTML=html+(btns?'<div class="acts"></div>':"");
+ (btns||[]).forEach(([l,f])=>{const b=document.createElement("button");b.className="btn sm";b.type="button";b.textContent=l;b.onclick=f;e.querySelector(".acts").appendChild(b)});e.scrollIntoView({block:"nearest",behavior:"smooth"})}
+const label=k=>k==="wa"?"WhatsApp":"SMS",pretty=p=>"+91 "+p.slice(0,5)+" "+p.slice(5);
+function sentNote(){const n=sends.filter(x=>x.no===billNo);return n.length?"Sent "+n.length+" time"+(n.length>1?"s":"")+" - last: "+label(n[n.length-1].kind)+" at "+n[n.length-1].at:""}
+function check(){const d=calc(),g=$("bGst").value.trim();
+ if(g&&!GSTIN.test(g)){st("err","The shop GSTIN is not valid. Fix it under Shop &amp; GST details, or clear it to make a bill of supply.");return null}
+ if(!d.ls.length){st("err","Add at least one item with a quantity and a price.");return null}
+ if(!ctx||!ctx.phone){st("err","This customer has no valid 10-digit mobile number saved, so the bill can't be sent. Close this, tap <b>Edit</b> on the customer and add the number.");return null}
+ return d}
+function send(kind){const d=check();if(!d)return;const to=ctx.phone,msg=text(d);
+ const url=kind==="wa"?"https://wa.me/91"+to+"?text="+encodeURIComponent(msg):"sms:+91"+to+"?&body="+encodeURIComponent(msg);
+ try{const w=kind==="wa"?window.open(url,"_blank"):null;if(!w)location.href=url}catch(e){
+  return st("err","Couldn't open "+label(kind)+" on this device. You can copy the bill and paste it into a chat yourself.",[["Copy bill text",()=>navigator.clipboard.writeText(msg).then(()=>say("Bill copied."),()=>say("Copy failed."))]])}
+ pend={no:billNo,kind,to};
+ st("",label(kind)+" opened with "+inv()+" for <b>"+esc(ctx.name)+"</b> ("+pretty(to)+"). Press <b>Send</b> there, then come back and confirm.",[["Yes, it was sent",confirm_],["Not sent / try again",()=>{pend=null;st("err","Not sent. Your bill is still ready - tap a Send button to try again.")}]])}
+function confirm_(){if(!pend)return;const at=now().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});sends.push({...pend,at});
+ try{const lg=JSON.parse(L.getItem(LK)||"[]");lg.push({inv:inv(),to:pend.to,kind:pend.kind,total:calc().total,at:now().toISOString()});L.setItem(LK,JSON.stringify(lg.slice(-100)));L.setItem(CK(),String(billNo))}catch{}
+ st("ok","&#10004; "+inv()+" sent to "+esc(ctx.name)+" ("+pretty(pend.to)+") by "+label(pend.kind)+" at "+at+". "+sentNote()+". You can send it again anytime.");say("Bill sent to "+ctx.name+".");pend=null}
+["bDisc","bPay"].forEach(i=>$(i).addEventListener("input",draw));$("bAddRow").onclick=()=>{row();draw()};$("bAddPerfume").onclick=()=>{row("Perfume","3303","1","","18");draw()};
+$("bWa").onclick=()=>send("wa");$("bSms").onclick=()=>send("sms");
+$("bNew").onclick=()=>{billNo=(parseInt(L.getItem(CK()))||0)+1;sends=[];saved=false;pend=null;$("bItems").innerHTML="";row();$("bDisc").value="";$("bStatus").className="bst";draw()};
+$("bSave").onclick=()=>{const d=calc();if(!d.ls.length)return st("err","Add items first.");if(saved&&!confirm("This bill was already added to the ledger. Add it again?"))return;
+ saved=true;$("pItem").value=inv();$("pAmt").value=d.total;$("pform").requestSubmit();say(inv()+" total added to ledger.")};
+window.openBill=c=>{if(!c){const r=$("rows");r&&r.scrollIntoView({behavior:"smooth",block:"start"});return say("Open a customer, then tap Make bill.")}
+ ctx={name:c.name||"Customer",phone:window.normPhone(c.phone)||""};billNo=(parseInt(L.getItem(CK()))||0)+1;sends=[];saved=false;pend=null;
+ $("bItems").innerHTML="";const demo=window.DEMO_ITEMS;(demo||[]).forEach(x=>row(x[0],x[1],x[2],x[3],x[4]));if(!demo)row();
+ $("bCust").value=ctx.name;$("bTo").value=ctx.phone?pretty(ctx.phone):"Not saved";$("bDisc").value="";$("bStatus").className="bst";
+ $("bSave").hidden=!$("detailDlg").open;draw();$("billDlg").showModal();if(!ctx.phone)check()};
+$("dBill").onclick=()=>window.openBill({name:$("dName").textContent,phone:($("dSub").textContent.split("·")[0]||"").trim()});
+/* app name, legal pages, red phone fields */
+document.querySelectorAll("[data-app]").forEach(e=>{const v=APP[e.dataset.app];if(v)e.textContent=v});
+document.querySelectorAll("[data-mail]").forEach(e=>{e.href="mailto:"+APP.email;e.textContent=APP.email});
+document.title=(APP.name||"Bahi")+" | "+(APP.tagline||"");
+document.addEventListener("click",e=>{const b=e.target.closest("[data-legal]");if(!b)return;const d=$({privacy:"privacyDlg",terms:"termsDlg",support:"supportDlg"}[b.dataset.legal]);if(d&&!d.open)d.showModal()});
+$("spSend").onclick=()=>{const m=$("spMsg").value.trim();if(!m)return $("spMsg").classList.add("bad");location.href="mailto:"+APP.email+"?subject="+encodeURIComponent((APP.name||"App")+" support")+"&body="+encodeURIComponent(m+"\n\n---\nApp: "+(APP.name||"")+" v"+(APP.version||"")+"\n"+navigator.userAgent)};
+["fPhone","prPhone"].forEach(id=>{const i=$(id);if(!i)return;const m=document.createElement("small");m.className="ferr";i.after(m);
+ i.addEventListener("input",()=>{const v=i.value.trim(),bad=v&&window.normPhone(v)===null;i.classList.toggle("bad",!!bad);m.textContent=bad?"Enter a valid 10-digit Indian mobile number (starts with 6, 7, 8 or 9).":""})});
+})();
+</script>
+<script>
+/* PWA: install button, offline notice, service worker */
+(()=>{const $=id=>document.getElementById(id);let dip=null;
+const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!standalone;
+function paint(){const t=$("prInstText"),b=$("prInstall");if(!t)return;b.hidden=!dip;
+ t.textContent=standalone?"Regulars is installed on this device.":dip?"Add Regulars to your home screen or desktop. It opens like a normal app.":ios?"On iPhone: tap the Share button, then Add to Home Screen.":"Open your browser menu and choose Install app (or Add to Home screen)."}
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();dip=e;paint()});
+addEventListener("appinstalled",()=>{dip=null;paint()});
+$("prInstall").onclick=async()=>{if(!dip)return;dip.prompt();await dip.userChoice;dip=null;paint()};
+const off=()=>$("offline").classList.toggle("show",!navigator.onLine);addEventListener("online",off);addEventListener("offline",off);off();paint();
+if("serviceWorker" in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+})();
+</script>
+<script>
+/* Dock: only triggers your existing buttons; no Firebase code touched */
+(()=>{const tabs=[...document.querySelectorAll("#dock .tab")],$=id=>document.getElementById(id);
+const act={home:()=>scrollTo({top:0,behavior:"smooth"}),find:()=>{const e=$("search");e&&e.scrollIntoView({behavior:"smooth",block:"center"})},
+ add:()=>$("addBtn")&&$("addBtn").click(),bill:()=>window.openBill&&window.openBill(null),profile:()=>window.openProfile&&window.openProfile()};
+const sel=i=>tabs.forEach((t,k)=>t.setAttribute("aria-selected",k===i));
+tabs.forEach((t,i)=>t.onclick=()=>{sel(i);act[t.dataset.act]()});
+["formDlg","calcDlg","profileDlg","billDlg"].forEach(id=>{const d=$(id);d&&d.addEventListener("close",()=>sel(0))});
+sel(0)})();
+</script>
+</body>
+</html>
